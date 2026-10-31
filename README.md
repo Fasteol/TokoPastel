@@ -13,15 +13,15 @@ Proyek ini dibuat untuk memenuhi tugas pembuatan aplikasi mobile dengan ketentua
 
 ## 🎥 Video Penjelasan & Demo
 
-▶️ **[Tonton di YouTube](GANTI_DENGAN_LINK_YOUTUBE)**
+▶️ **[Tonton di YouTube](https://youtu.be/dYjQNRf6fH8)**
 
 ## 👤 Identitas
 
-|       |                           |
-| ----- | ------------------------- |
-| Nama  | GANTI_DENGAN_NAMA_LENGKAP |
-| NIM   | GANTI_DENGAN_NIM          |
-| Kelas | GANTI_DENGAN_KELAS        |
+|       |                                |
+| ----- | ------------------------------ |
+| Nama  | Razan Muhammad Fauzan Sya'bani |
+| NIM   | 240102109                      |
+| Kelas | IF24A                          |
 
 ## ✨ Fitur
 
