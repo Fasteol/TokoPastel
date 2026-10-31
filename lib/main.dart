@@ -3,21 +3,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-// ============================================================
-// 0. WARNA PASTEL
-// Semua warna dikumpulkan di sini supaya mudah diganti
-// ============================================================
 class Warna {
-  static const background = Color(0xFFFFF8F3); // cream
+  static const background = Color(0xFFFFF8F3);
   static const teks = Color(0xFF4A4458);
   static const teksPudar = Color(0xFF8C869A);
-  static const ungu = Color(0xFFB8A4E3); // lavender (warna utama)
+  static const ungu = Color(0xFFB8A4E3);
   static const pink = Color(0xFFF7A8B8);
   static const kuning = Color(0xFFF5C26B);
   static const putih = Colors.white;
   static const bayangan = Color(0x40B8A4E3);
 
-  // Warna latar kartu: peach, mint, lavender, sky, pink, butter
   static const List<Color> kartu = [
     Color(0xFFFFE0D3),
     Color(0xFFD4F1E4),
@@ -27,13 +22,9 @@ class Warna {
     Color(0xFFFFF3C4),
   ];
 
-  // Ambil warna kartu berdasarkan urutan (diulang bergantian)
   static Color kartuKe(int i) => kartu[i % kartu.length];
 }
 
-// ============================================================
-// 1. TITIK AWAL APLIKASI
-// ============================================================
 void main() {
   runApp(const MainApp());
 }
@@ -68,10 +59,6 @@ class MainApp extends StatelessWidget {
   }
 }
 
-// ============================================================
-// 2. MODEL PRODUK
-// Cetakan untuk menyimpan data satu produk dari API
-// ============================================================
 class Product {
   final int id;
   final String title;
@@ -91,7 +78,6 @@ class Product {
     required this.thumbnail,
   });
 
-  // Mengubah data JSON dari API menjadi objek Product
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id'],
@@ -105,9 +91,6 @@ class Product {
   }
 }
 
-// ============================================================
-// 3. HALAMAN LIST (halaman utama)
-// ============================================================
 class HalamanList extends StatefulWidget {
   const HalamanList({super.key});
 
@@ -116,26 +99,20 @@ class HalamanList extends StatefulWidget {
 }
 
 class _HalamanListState extends State<HalamanList> {
-  // Tempat menyimpan daftar produk
   List<Product> dataList = [];
 
-  // true = sedang loading, false = selesai
   bool isLoading = true;
 
-  // Menyimpan pesan error (kosong kalau tidak ada error)
   String errorMessage = '';
 
-  // Untuk membaca teks yang diketik di kolom Search
   TextEditingController searchController = TextEditingController();
 
-  // Penanda permintaan terakhir, supaya hasil lama tidak menimpa hasil baru
   int permintaanKe = 0;
 
-  // Dipanggil sekali saat halaman pertama kali dibuka
   @override
   void initState() {
     super.initState();
-    ambilData(); // langsung ambil data dari API
+    ambilData();
   }
 
   @override
@@ -144,34 +121,26 @@ class _HalamanListState extends State<HalamanList> {
     super.dispose();
   }
 
-  // Fungsi untuk mengambil data produk dari API
   Future<void> ambilData({String kataCari = ''}) async {
     final nomor = ++permintaanKe;
 
-    // Tampilkan loading dulu
     setState(() {
       isLoading = true;
       errorMessage = '';
     });
 
     try {
-      // Tentukan alamat API:
-      // - kalau kolom search kosong -> ambil semua produk (limit=0 = tanpa batas)
-      // - kalau ada isinya -> cari produk sesuai kata
       String alamat = 'https://dummyjson.com/products?limit=0';
       if (kataCari.isNotEmpty) {
         alamat =
             'https://dummyjson.com/products/search?q=${Uri.encodeQueryComponent(kataCari)}&limit=0';
       }
 
-      // Kirim permintaan ke internet
       final response = await http.get(Uri.parse(alamat));
 
-      // Abaikan kalau sudah ada permintaan yang lebih baru
       if (!mounted || nomor != permintaanKe) return;
 
       if (response.statusCode == 200) {
-        // Berhasil: ubah teks JSON menjadi data Dart
         final data = jsonDecode(response.body);
         final List hasil = data['products'];
 
@@ -187,7 +156,6 @@ class _HalamanListState extends State<HalamanList> {
       }
     } catch (e) {
       if (!mounted || nomor != permintaanKe) return;
-      // Biasanya terjadi kalau tidak ada internet
       setState(() {
         errorMessage = 'Terjadi kesalahan, cek koneksi internet';
         isLoading = false;
@@ -195,13 +163,11 @@ class _HalamanListState extends State<HalamanList> {
     }
   }
 
-  // Dipanggil saat tombol search / Enter ditekan
   void cari() {
-    FocusScope.of(context).unfocus(); // tutup keyboard
+    FocusScope.of(context).unfocus();
     ambilData(kataCari: searchController.text.trim());
   }
 
-  // Kolom pencarian + tombol search
   Widget kolomSearch() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -230,22 +196,19 @@ class _HalamanListState extends State<HalamanList> {
                 hintStyle: TextStyle(color: Warna.teksPudar),
                 border: InputBorder.none,
               ),
-              onChanged: (_) =>
-                  setState(() {}), // supaya tombol X muncul/hilang
+              onChanged: (_) => setState(() {}),
               onSubmitted: (_) => cari(),
             ),
           ),
-          // Tombol hapus teks (X), hanya muncul kalau ada teks
           if (searchController.text.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.close, size: 20, color: Warna.teksPudar),
               onPressed: () {
                 searchController.clear();
                 setState(() {});
-                ambilData(); // kembali menampilkan semua produk
+                ambilData();
               },
             ),
-          // Tombol search
           Container(
             width: 40,
             height: 40,
@@ -264,14 +227,11 @@ class _HalamanListState extends State<HalamanList> {
     );
   }
 
-  // Menentukan apa yang tampil di bawah kolom Search
   Widget tampilanIsi() {
-    // Kalau sedang loading -> tampilkan lingkaran berputar
     if (isLoading) {
       return const Center(child: CircularProgressIndicator(color: Warna.ungu));
     }
 
-    // Kalau ada error -> tampilkan pesan error + tombol coba lagi
     if (errorMessage.isNotEmpty) {
       return Center(
         child: Column(
@@ -294,7 +254,6 @@ class _HalamanListState extends State<HalamanList> {
       );
     }
 
-    // Kalau data kosong -> beri tahu user
     if (dataList.isEmpty) {
       return const Center(
         child: Column(
@@ -311,7 +270,6 @@ class _HalamanListState extends State<HalamanList> {
       );
     }
 
-    // Kalau semua aman -> tampilkan daftar produk dalam 2 kolom
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
       itemCount: dataList.length,
@@ -327,7 +285,6 @@ class _HalamanListState extends State<HalamanList> {
         return KartuProduk(
           product: product,
           index: index,
-          // Saat item ditekan, pindah ke halaman detail
           onTap: () {
             Navigator.push(
               context,
@@ -372,10 +329,8 @@ class _HalamanListState extends State<HalamanList> {
             ),
             const SizedBox(height: 16),
 
-            // Kolom pencarian
             kolomSearch(),
 
-            // Jumlah produk
             Padding(
               padding: const EdgeInsets.fromLTRB(22, 14, 22, 8),
               child: Text(
@@ -384,7 +339,6 @@ class _HalamanListState extends State<HalamanList> {
               ),
             ),
 
-            // Bagian daftar produk
             Expanded(child: tampilanIsi()),
           ],
         ),
@@ -393,9 +347,6 @@ class _HalamanListState extends State<HalamanList> {
   }
 }
 
-// ============================================================
-// 3b. KARTU PRODUK (satu kotak produk di halaman list)
-// ============================================================
 class KartuProduk extends StatelessWidget {
   final Product product;
   final int index;
@@ -428,7 +379,6 @@ class KartuProduk extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Bagian gambar dengan latar warna pastel
             Expanded(
               child: Stack(
                 children: [
@@ -447,7 +397,6 @@ class KartuProduk extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Label diskon
                   if (product.discountPercentage > 0)
                     Positioned(
                       top: 10,
@@ -475,7 +424,6 @@ class KartuProduk extends StatelessWidget {
               ),
             ),
 
-            // Bagian informasi
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -533,15 +481,9 @@ class KartuProduk extends StatelessWidget {
   }
 }
 
-// ============================================================
-// 4. HALAMAN DETAIL
-// Menampilkan informasi lengkap satu produk
-// ============================================================
 class HalamanDetail extends StatefulWidget {
-  // id produk yang dikirim dari halaman list
   final int id;
 
-  // urutan produk di list (dipakai untuk menentukan warna latar)
   final int index;
 
   const HalamanDetail({super.key, required this.id, this.index = 0});
@@ -551,13 +493,11 @@ class HalamanDetail extends StatefulWidget {
 }
 
 class _HalamanDetailState extends State<HalamanDetail> {
-  // Menyimpan data produk (null artinya belum ada)
   Map<String, dynamic>? produk;
 
   bool isLoading = true;
   String errorMessage = '';
 
-  // Nomor gambar yang sedang tampil (untuk titik-titik indikator)
   int gambarKe = 0;
 
   @override
@@ -566,7 +506,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
     ambilDetail();
   }
 
-  // Mengambil data 1 produk berdasarkan id
   Future<void> ambilDetail() async {
     setState(() {
       isLoading = true;
@@ -600,7 +539,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
     }
   }
 
-  // Label kecil berwarna (kategori, brand, tag)
   Widget chip(String teks, Color warna) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -619,7 +557,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
     );
   }
 
-  // Kotak statistik kecil (stok, berat, status)
   Widget kotakStat(String label, String nilai, Color warna) {
     return Expanded(
       child: Container(
@@ -653,7 +590,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
     );
   }
 
-  // Satu baris informasi (kiri: judul, kanan: isi)
   Widget barisInfo(String judul, String isi) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -696,7 +632,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
     );
   }
 
-  // Menentukan apa yang tampil di halaman detail
   Widget tampilanIsi() {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator(color: Warna.ungu));
@@ -724,7 +659,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
       );
     }
 
-    // ---- Siapkan data dari JSON ----
     final p = produk!;
     final List daftarGambar = (p['images'] as List?) ?? [];
     final List gambar = daftarGambar.isEmpty ? [p['thumbnail']] : daftarGambar;
@@ -739,7 +673,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
     final List tags = (p['tags'] as List?) ?? [];
     final List ulasan = (p['reviews'] as List?) ?? [];
 
-    // Daftar informasi tambahan (yang kosong tidak ditampilkan)
     final List<List<dynamic>> info = [
       ['Garansi', p['warrantyInformation']],
       ['Pengiriman', p['shippingInformation']],
@@ -755,7 +688,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ---- Gambar produk (bisa digeser) ----
                 Container(
                   height: 300,
                   decoration: BoxDecoration(
@@ -781,7 +713,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
                           ),
                         ),
                       ),
-                      // Titik indikator
                       if (gambar.length > 1)
                         Positioned(
                           bottom: 14,
@@ -813,7 +744,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
                 ),
                 const SizedBox(height: 16),
 
-                // ---- Kategori & brand ----
                 Wrap(
                   spacing: 8,
                   runSpacing: 6,
@@ -824,7 +754,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
                 ),
                 const SizedBox(height: 10),
 
-                // ---- Nama produk ----
                 Text(
                   '${p['title']}',
                   style: const TextStyle(
@@ -835,7 +764,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
                 ),
                 const SizedBox(height: 6),
 
-                // ---- Rating ----
                 Text.rich(
                   TextSpan(
                     children: [
@@ -856,7 +784,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
                 ),
                 const SizedBox(height: 12),
 
-                // ---- Harga ----
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -902,7 +829,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
                 ),
                 const SizedBox(height: 18),
 
-                // ---- Stok, berat, status ----
                 Row(
                   children: [
                     kotakStat('Stok', '${p['stock']}', const Color(0xFFD4F1E4)),
@@ -919,7 +845,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
                   ],
                 ),
 
-                // ---- Deskripsi ----
                 judulBagian('Deskripsi'),
                 Text(
                   '${p['description']}',
@@ -930,7 +855,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
                   ),
                 ),
 
-                // ---- Tag ----
                 if (tags.isNotEmpty) ...[
                   const SizedBox(height: 14),
                   Wrap(
@@ -943,7 +867,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
                   ),
                 ],
 
-                // ---- Informasi tambahan ----
                 judulBagian('Informasi'),
                 Container(
                   width: double.infinity,
@@ -961,7 +884,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
                   ),
                 ),
 
-                // ---- Ulasan ----
                 if (ulasan.isNotEmpty) ...[
                   judulBagian('Ulasan'),
                   for (int i = 0; i < ulasan.length; i++)
@@ -1009,7 +931,6 @@ class _HalamanDetailState extends State<HalamanDetail> {
           ),
         ),
 
-        // ---- Bar bawah: harga + tombol ----
         Container(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
           decoration: const BoxDecoration(
